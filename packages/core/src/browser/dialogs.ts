@@ -252,6 +252,11 @@ export class ConfirmDialog extends AbstractDialog<boolean> {
 export class SingleTextInputDialogProps extends DialogProps {
     readonly confirmButtonLabel?: string;
     readonly initialValue?: string;
+    readonly initialSelectionRange?: {
+        start: number
+        end: number
+        direction?: 'forward' | 'backward' | 'none'
+    };
     readonly validate?: (input: string) => string;
 }
 
@@ -268,6 +273,13 @@ export class SingleTextInputDialog extends AbstractDialog<string> {
         this.inputField.type = 'text';
         this.inputField.setAttribute('style', 'flex: 0;');
         this.inputField.value = props.initialValue || '';
+        if (props.initialSelectionRange) {
+            this.inputField.setSelectionRange(
+                props.initialSelectionRange.start,
+                props.initialSelectionRange.end,
+                props.initialSelectionRange.direction
+            );
+        }
         this.contentNode.appendChild(this.inputField);
 
         this.appendAcceptButton(props.confirmButtonLabel);
@@ -291,7 +303,16 @@ export class SingleTextInputDialog extends AbstractDialog<string> {
 
     protected onActivateRequest(msg: Message): void {
         this.inputField.focus();
-        this.inputField.select();
+        const selectionRange = this.props.initialSelectionRange;
+        if (selectionRange) {
+            this.inputField.setSelectionRange(
+                selectionRange.start,
+                selectionRange.end,
+                selectionRange.direction
+            );
+        } else {
+            this.inputField.select();
+        }
     }
 
 }
