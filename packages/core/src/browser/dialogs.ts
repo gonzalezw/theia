@@ -157,17 +157,21 @@ export abstract class AbstractDialog<T> extends BaseWidget {
         if (this.resolve) {
             this.resolve(undefined);
         }
-
         super.close();
     }
 
     protected onUpdateRequest(msg: Message): void {
         super.onUpdateRequest(msg);
-        if (this.resolve) {
-            const value = this.value;
-            const error = this.isValid(value);
-            this.setErrorMessage(error);
+        this.validate();
+    }
+
+    protected validate(): void {
+        if (!this.resolve) {
+            return;
         }
+        const value = this.value;
+        const error = this.isValid(value);
+        this.setErrorMessage(error);
     }
 
     protected accept(): void {
@@ -185,11 +189,17 @@ export abstract class AbstractDialog<T> extends BaseWidget {
 
     abstract get value(): T;
 
-    isValid(value: T): string {
+    /**
+     * Return a validation error.
+     *
+     * Only if it returns a string of 0-length then valid, i.e. even if it returns an empty string of non 0-length then invalid.
+     * It can be used to disable control elements without displaying an error.
+     */
+    protected isValid(value: T): string {
         return '';
     }
 
-    protected setErrorMessage(error: string) {
+    protected setErrorMessage(error: string): void {
         if (this.acceptButton) {
             this.acceptButton.disabled = !!error;
         }
@@ -289,7 +299,7 @@ export class SingleTextInputDialog extends AbstractDialog<string> {
         return this.inputField.value;
     }
 
-    isValid(value: string): string {
+    protected isValid(value: string): string {
         if (this.props.validate) {
             return this.props.validate(value);
         }
